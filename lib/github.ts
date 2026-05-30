@@ -723,26 +723,6 @@ export function buildCommitClock(allDays: ContributionDay[]) {
   return dayNames.map((name, i) => ({ day: name, commits: dayTotals[i] }));
 }
 
-export async function fetchUserOrganizations(
-  username: string,
-  options: FetchOptions = {}
-): Promise<{ login: string; avatar_url: string; description: string | null }[]> {
-  const encodedUsername = encodeURIComponent(username);
-  const res = await fetchWithRetry(`${GITHUB_REST_URL}/users/${encodedUsername}/orgs`, {
-    headers: getHeaders(),
-    cache: 'no-store',
-    signal: options.signal,
-  });
-
-  if (!res.ok) {
-    if (res.status === 404) return [];
-    throwIfRateLimited(res);
-    return [];
-  }
-
-  return await res.json();
-}
-
 export async function fetchContributedRepos(
   username: string,
   options: FetchOptions = {}

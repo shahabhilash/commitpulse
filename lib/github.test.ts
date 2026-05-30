@@ -4,6 +4,7 @@ import {
   fetchWithRetry,
   fetchUserProfile,
   fetchUserRepos,
+  fetchContributedRepos,
   getFullDashboardData,
   generateAchievements,
   buildCommitClock,
@@ -559,6 +560,51 @@ describe('fetchUserRepos', () => {
 
     expect(fetch).toHaveBeenCalledTimes(3);
     expect(result.length).toBe(201);
+  });
+});
+
+describe('fetchContributedRepos', () => {
+  beforeEach(() => vi.spyOn(global, 'fetch'));
+  afterEach(() => vi.restoreAllMocks());
+
+  it('returns contributed repos on success', async () => {
+    const mockNodes = [
+      {
+        name: 'repo1',
+        nameWithOwner: 'owner/repo1',
+        stargazerCount: 10,
+        forkCount: 5,
+        primaryLanguage: { name: 'TypeScript' },
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+    ];
+
+    vi.mocked(fetch).mockResolvedValue(
+      mockResponse({
+        data: {
+          user: {
+            repositoriesContributedTo: {
+              nodes: mockNodes,
+            },
+          },
+        },
+      })
+    );
+
+    const result = await fetchContributedRepos('octocat');
+    expect(result).toEqual(mockNodes);
+  });
+
+  it('returns empty array when fetch fails', async () => {
+    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 500 }));
+    const result = await fetchContributedRepos('octocat');
+    expect(result).toEqual([]);
+  });
+
+  it('returns empty array if data structure is missing', async () => {
+    vi.mocked(fetch).mockResolvedValue(mockResponse({ data: null }));
+    const result = await fetchContributedRepos('octocat');
+    expect(result).toEqual([]);
   });
 });
 
