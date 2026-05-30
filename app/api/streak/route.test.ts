@@ -291,6 +291,54 @@ describe('GET /api/streak', () => {
     });
   });
 
+  describe('edge cases for empty/private profiles', () => {
+    it('Scenario 1: Normal active GitHub user', async () => {
+      const response = await GET(makeRequest({ user: 'octocat' }));
+      expect(response.status).toBe(200);
+      const body = await response.text();
+      expect(body).toContain('<svg');
+    });
+
+    it('Scenario 2 & 3: User with 0 public repositories or private profile (empty calendar)', async () => {
+      vi.mocked(fetchGitHubContributions).mockResolvedValue({
+        calendar: {
+          totalContributions: 0,
+          weeks: [],
+        },
+        repoContributions: [],
+      } as unknown as ExtendedContributionData);
+
+      const response = await GET(makeRequest({ user: 'private-user' }));
+      expect(response.status).toBe(200);
+      const body = await response.text();
+      expect(body).toContain('<svg');
+      // Should show 0 contributions and streaks
+      expect(body).toContain('>0<');
+    });
+
+    it('Scenario 4: Nonexistent username', async () => {
+      vi.mocked(fetchGitHubContributions).mockRejectedValue(
+        new Error('GitHub user "nonexistent" not found')
+      );
+
+      const response = await GET(makeRequest({ user: 'nonexistent' }));
+      expect(response.status).toBe(404);
+      const body = await response.text();
+      expect(body).toContain('<svg');
+      expect(body).toContain('NOT FOUND');
+    });
+
+    it('Scenario 5: GitHub API failure', async () => {
+      vi.mocked(fetchGitHubContributions).mockRejectedValue(new Error('API Rate Limit Exceeded'));
+
+      const response = await GET(makeRequest({ user: 'octocat' }));
+      expect(response.status).toBe(429);
+      const body = await response.text();
+      expect(body).toContain('<svg');
+      expect(body).toContain('API RATE LIMIT');
+    });
+  });
+
   describe('cache-control header', () => {
     it('caches until UTC midnight by default, using the value from getSecondsUntilUTCMidnight', async () => {
       const response = await GET(makeRequest({ user: 'octocat' }));
@@ -825,6 +873,20 @@ describe('GET /api/streak', () => {
       expect(body).toContain('</svg>');
 
       expect(getSecondsUntilMidnightInTimezone).toHaveBeenCalledWith('Australia/Sydney');
+    });
+
+    // =========================================================================
+    // ISSUE OBJECTIVE: Reject fictitious planetary timezone (Variation 4)
+    // =========================================================================
+    it('returns 400 when a fictitious planetary timezone Mars/Cyonia is supplied', async () => {
+      // Mars/Cyonia is structurally plausible (Region/City format) but does not
+      // exist in the IANA tz database — the schema must reject it before the
+      // request reaches the GitHub API.
+      const response = await GET(makeRequest({ user: 'octocat', tz: 'Mars/Cyonia' }));
+
+      expect(response.status).toBe(400);
+      const body = await response.json();
+      expect(body.details.fieldErrors.tz[0]).toContain('Invalid timezone');
     });
   });
 
