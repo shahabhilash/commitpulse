@@ -70,20 +70,6 @@ export const labels: Record<string, BadgeLabels> = {
     COMMITS_THIS_MONTH: 'இம்மாத கமிட்கள்',
     VS_LAST_MONTH: 'கடந்த மாதத்துடன்',
   },
-  fr: {
-    CURRENT_STREAK: 'SÉRIE_ACTUELLE',
-    ANNUAL_SYNC_TOTAL: 'TOTAL_ANNUEL',
-    PEAK_STREAK: 'SÉRIE_MAXIMALE',
-    COMMITS_THIS_MONTH: 'COMMITS CE MOIS',
-    VS_LAST_MONTH: 'vs mois dernier',
-  },
-  ja: {
-    CURRENT_STREAK: '現在_ストリーク',
-    ANNUAL_SYNC_TOTAL: '年間_合計',
-    PEAK_STREAK: '最高_ストリーク',
-    COMMITS_THIS_MONTH: '今月のコミット数',
-    VS_LAST_MONTH: '先月比',
-  },
   de: {
     CURRENT_STREAK: 'AKTUELLE_SERIE',
     ANNUAL_SYNC_TOTAL: 'JAHRES_GESAMT',
