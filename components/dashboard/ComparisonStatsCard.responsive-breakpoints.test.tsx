@@ -3,6 +3,18 @@ import { render, screen } from '@testing-library/react';
 import ComparisonStatsCard from './ComparisonStatsCard';
 import React from 'react';
 
+// Mock IntersectionObserver
+class MockIntersectionObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+Object.defineProperty(window, 'IntersectionObserver', {
+  writable: true,
+  configurable: true,
+  value: MockIntersectionObserver,
+});
+
 // Mock matchMedia for responsive viewport testing
 const mockMatchMedia = (width: number) => {
   return vi.fn().mockImplementation((query) => ({
